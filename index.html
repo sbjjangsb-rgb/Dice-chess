@@ -6,62 +6,72 @@
 <title>Dice Slot</title>
 
 <style>
-body {
-  margin: 0;
-  background: orange;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  overflow: hidden;
-  font-family: sans-serif;
+body{
+  margin:0;
+  background:orange;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  overflow:hidden;
+  font-family:sans-serif;
 }
 
-.container {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 40px;
+.container{
+  display:flex;
+  gap:16px;
+  margin-bottom:40px;
 }
 
-.slot {
-  width: 100px;
-  height: 100px;
-  background: black;
-  color: white;
-  font-size: 52px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 16px;
-
-  border: 3px solid transparent;
-
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    border-color 0.15s ease;
+.slot{
+  width:100px;
+  height:100px;
+  background:black;
+  color:white;
+  font-size:54px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-radius:16px;
+  border:3px solid transparent;
 }
 
-.slot.hit {
-  transform: scale(1.15);
-  border-color: yellow;
-  box-shadow:
-    0 0 12px yellow,
-    0 0 24px rgba(255,255,0,0.8);
+.hit{
+  animation: popFlash 0.25s ease;
 }
 
-button {
-  padding: 16px 40px;
-  font-size: 22px;
-  border: none;
-  border-radius: 14px;
-  background: black;
-  color: white;
+@keyframes popFlash{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0px yellow;
+    border-color:white;
+  }
+
+  50%{
+    transform:scale(1.18);
+    box-shadow:0 0 28px yellow;
+    border-color:yellow;
+  }
+
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0px yellow;
+    border-color:white;
+  }
 }
 
-button:active {
-  transform: scale(0.96);
+button{
+  padding:16px 40px;
+  font-size:22px;
+  border:none;
+  border-radius:14px;
+  background:black;
+  color:white;
+}
+
+button:active{
+  transform:scale(0.96);
 }
 </style>
 </head>
@@ -77,13 +87,15 @@ button:active {
 <button onclick="roll()">ROLL</button>
 
 <script>
+
 const pieces = ["♙","♗","♘","♖","♔","♕"];
 
-function rand() {
-  return pieces[Math.floor(Math.random() * 6)];
+function rand(){
+  return pieces[Math.floor(Math.random()*6)];
 }
 
-function beep() {
+function beep(){
+
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
   const osc = ctx.createOscillator();
@@ -99,61 +111,66 @@ function beep() {
 
   osc.start();
 
-  setTimeout(() => {
+  setTimeout(()=>{
     osc.stop();
     ctx.close();
-  }, 80);
+  },80);
 }
 
-function triggerHit(slot) {
+function triggerHit(slot){
+
+  slot.classList.remove("hit");
+
+  void slot.offsetWidth;
+
   slot.classList.add("hit");
 
   beep();
-
-  setTimeout(() => {
-    slot.classList.remove("hit");
-  }, 180);
 }
 
-function spin(slot, duration) {
-  let speed = 50;
+function spin(slot, stopTime){
 
-  const interval = setInterval(() => {
+  const interval = setInterval(()=>{
     slot.innerText = rand();
-  }, speed);
+  },60);
 
-  setTimeout(() => {
+  setTimeout(()=>{
+
     clearInterval(interval);
-
-    slot.innerText = rand();
 
     triggerHit(slot);
 
-  }, duration);
+  },stopTime);
 }
 
 let rolling = false;
 
-function roll() {
+function roll(){
 
-  if (rolling) return;
+  if(rolling) return;
 
   rolling = true;
 
-  spin(document.getElementById("slot1"), 1500);
+  spin(
+    document.getElementById("slot1"),
+    1500
+  );
 
-  setTimeout(() => {
-    spin(document.getElementById("slot2"), 2000);
-  }, 200);
+  spin(
+    document.getElementById("slot2"),
+    2000
+  );
 
-  setTimeout(() => {
-    spin(document.getElementById("slot3"), 2500);
-  }, 400);
+  spin(
+    document.getElementById("slot3"),
+    2500
+  );
 
-  setTimeout(() => {
+  setTimeout(()=>{
     rolling = false;
-  }, 2700);
+  },2700);
 }
+
 </script>
 
 </body>
