@@ -8,39 +8,60 @@
 <style>
 body {
   margin: 0;
-  background: orange; /* 🔥 배경 주황색 */
+  background: orange;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow: hidden;
+  font-family: sans-serif;
 }
 
 .container {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 16px;
+  margin-bottom: 40px;
 }
 
 .slot {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   background: black;
   color: white;
-  font-size: 40px;
+  font-size: 52px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 10px;
+  border-radius: 16px;
+
+  border: 3px solid transparent;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.slot.hit {
+  transform: scale(1.15);
+  border-color: yellow;
+  box-shadow:
+    0 0 12px yellow,
+    0 0 24px rgba(255,255,0,0.8);
 }
 
 button {
-  padding: 15px 30px;
-  font-size: 18px;
+  padding: 16px 40px;
+  font-size: 22px;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   background: black;
   color: white;
+}
+
+button:active {
+  transform: scale(0.96);
 }
 </style>
 </head>
@@ -62,27 +83,65 @@ function rand() {
   return pieces[Math.floor(Math.random() * 6)];
 }
 
-function spin(slot, delay) {
-  let count = 0;
+function beep() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "square";
+  osc.frequency.value = 900;
+
+  gain.gain.value = 0.03;
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+
+  setTimeout(() => {
+    osc.stop();
+    ctx.close();
+  }, 80);
+}
+
+function triggerHit(slot) {
+  slot.classList.add("hit");
+
+  beep();
+
+  setTimeout(() => {
+    slot.classList.remove("hit");
+  }, 180);
+}
+
+function spin(slot, duration) {
+  let speed = 50;
 
   const interval = setInterval(() => {
     slot.innerText = rand();
-    count++;
-
-    if (count > 15) {
-      clearInterval(interval);
-      slot.innerText = rand();
-    }
-  }, 50);
+  }, speed);
 
   setTimeout(() => {
     clearInterval(interval);
+
     slot.innerText = rand();
-  }, delay);
+
+    triggerHit(slot);
+
+  }, duration);
 }
 
+let rolling = false;
+
 function roll() {
+
+  if (rolling) return;
+
+  rolling = true;
+
   spin(document.getElementById("slot1"), 1500);
+
   setTimeout(() => {
     spin(document.getElementById("slot2"), 2000);
   }, 200);
@@ -90,6 +149,10 @@ function roll() {
   setTimeout(() => {
     spin(document.getElementById("slot3"), 2500);
   }, 400);
+
+  setTimeout(() => {
+    rolling = false;
+  }, 2700);
 }
 </script>
 
