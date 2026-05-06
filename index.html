@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dice Slot</title>
+<title>Chess Slot</title>
 
 <style>
+
 body{
   margin:0;
-  background:orange;
+  background:#f7931e;
   display:flex;
-  flex-direction:column;
   justify-content:center;
   align-items:center;
+  flex-direction:column;
   height:100vh;
   overflow:hidden;
   font-family:sans-serif;
@@ -20,52 +21,51 @@ body{
 
 .container{
   display:flex;
-  gap:16px;
+  gap:20px;
   margin-bottom:40px;
 }
 
 .slot{
-  width:100px;
-  height:100px;
-  background:black;
-  color:white;
-  font-size:54px;
+  width:110px;
+  height:110px;
+  background:#111;
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+
+  border:3px solid rgba(255,255,255,0.15);
+
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
+
+.reel{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+
+  transition:none;
+}
+
+.symbol{
+  width:110px;
+  height:110px;
+
   display:flex;
   justify-content:center;
   align-items:center;
-  border-radius:16px;
-  border:3px solid transparent;
-}
 
-.hit{
-  animation: popFlash 0.25s ease;
-}
-
-@keyframes popFlash{
-  0%{
-    transform:scale(1);
-    box-shadow:0 0 0px yellow;
-    border-color:white;
-  }
-
-  50%{
-    transform:scale(1.18);
-    box-shadow:0 0 28px yellow;
-    border-color:yellow;
-  }
-
-  100%{
-    transform:scale(1);
-    box-shadow:0 0 0px yellow;
-    border-color:white;
-  }
+  color:white;
+  font-size:64px;
 }
 
 button{
-  padding:16px 40px;
-  font-size:22px;
+  padding:16px 42px;
   border:none;
   border-radius:14px;
+  font-size:24px;
   background:black;
   color:white;
 }
@@ -73,15 +73,56 @@ button{
 button:active{
   transform:scale(0.96);
 }
+
+/* 확정 이펙트 */
+
+.slot.hit{
+  animation:slotHit 0.28s ease;
+}
+
+@keyframes slotHit{
+
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0px rgba(255,255,0,0);
+    border-color:white;
+  }
+
+  50%{
+    transform:scale(1.13);
+    box-shadow:
+      0 0 18px yellow,
+      0 0 40px rgba(255,255,0,0.9);
+
+    border-color:yellow;
+  }
+
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0px rgba(255,255,0,0);
+    border-color:white;
+  }
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
-  <div class="slot" id="slot1">♙</div>
-  <div class="slot" id="slot2">♘</div>
-  <div class="slot" id="slot3">♖</div>
+
+  <div class="slot" id="slot1">
+    <div class="reel"></div>
+  </div>
+
+  <div class="slot" id="slot2">
+    <div class="reel"></div>
+  </div>
+
+  <div class="slot" id="slot3">
+    <div class="reel"></div>
+  </div>
+
 </div>
 
 <button onclick="roll()">ROLL</button>
@@ -90,31 +131,61 @@ button:active{
 
 const pieces = ["♙","♗","♘","♖","♔","♕"];
 
-function rand(){
-  return pieces[Math.floor(Math.random()*6)];
+const reels = document.querySelectorAll(".reel");
+const slots = document.querySelectorAll(".slot");
+
+let rolling = false;
+
+function buildReel(reel){
+
+  reel.innerHTML = "";
+
+  for(let i=0;i<40;i++){
+
+    const div = document.createElement("div");
+
+    div.className = "symbol";
+
+    div.innerText = pieces[
+      Math.floor(Math.random()*pieces.length)
+    ];
+
+    reel.appendChild(div);
+  }
 }
+
+reels.forEach(buildReel);
 
 function beep(){
 
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ctx = new (
+    window.AudioContext ||
+    window.webkitAudioContext
+  )();
 
   const osc = ctx.createOscillator();
+
   const gain = ctx.createGain();
 
   osc.type = "square";
-  osc.frequency.value = 900;
 
-  gain.gain.value = 0.03;
+  osc.frequency.value = 950;
+
+  gain.gain.value = 0.035;
 
   osc.connect(gain);
+
   gain.connect(ctx.destination);
 
   osc.start();
 
   setTimeout(()=>{
+
     osc.stop();
+
     ctx.close();
-  },80);
+
+  },90);
 }
 
 function triggerHit(slot){
@@ -128,22 +199,40 @@ function triggerHit(slot){
   beep();
 }
 
-function spin(slot, stopTime){
+function spinReel(reel, slot, duration){
 
-  const interval = setInterval(()=>{
-    slot.innerText = rand();
-  },60);
+  buildReel(reel);
 
-  setTimeout(()=>{
+  reel.style.transition = "none";
 
-    clearInterval(interval);
+  reel.style.transform = "translateY(0px)";
 
-    triggerHit(slot);
+  requestAnimationFrame(()=>{
 
-  },stopTime);
+    requestAnimationFrame(()=>{
+
+      reel.style.transition =
+        `transform ${duration}ms cubic-bezier(0.12,0.8,0.18,1)`;
+
+      const finalIndex =
+        28 + Math.floor(Math.random()*6);
+
+      const finalY = finalIndex * 110;
+
+      reel.style.transform =
+        `translateY(-${finalY}px)`;
+
+      setTimeout(()=>{
+
+        triggerHit(slot);
+
+      }, duration);
+
+    });
+
+  });
+
 }
-
-let rolling = false;
 
 function roll(){
 
@@ -151,24 +240,37 @@ function roll(){
 
   rolling = true;
 
-  spin(
-    document.getElementById("slot1"),
+  spinReel(
+    reels[0],
+    slots[0],
     1500
   );
 
-  spin(
-    document.getElementById("slot2"),
-    2000
-  );
+  setTimeout(()=>{
 
-  spin(
-    document.getElementById("slot3"),
-    2500
-  );
+    spinReel(
+      reels[1],
+      slots[1],
+      2000
+    );
+
+  },500);
 
   setTimeout(()=>{
+
+    spinReel(
+      reels[2],
+      slots[2],
+      2500
+    );
+
+  },1000);
+
+  setTimeout(()=>{
+
     rolling = false;
-  },2700);
+
+  },3200);
 }
 
 </script>
