@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dice Slot</title>
+
+<style>
+body {
+  margin: 0;
+  background: orange; /* 🔥 배경 주황색 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.slot {
+  width: 80px;
+  height: 80px;
+  background: black;
+  color: white;
+  font-size: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+}
+
+button {
+  padding: 15px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  background: black;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="slot" id="slot1">♙</div>
+  <div class="slot" id="slot2">♘</div>
+  <div class="slot" id="slot3">♖</div>
+</div>
+
+<button onclick="roll()">ROLL</button>
+
+<script>
+const pieces = ["♙","♗","♘","♖","♔","♕"];
+
+function rand() {
+  return pieces[Math.floor(Math.random() * 6)];
+}
+
+function spin(slot, delay) {
+  let count = 0;
+
+  const interval = setInterval(() => {
+    slot.innerText = rand();
+    count++;
+
+    if (count > 15) {
+      clearInterval(interval);
+      slot.innerText = rand();
+    }
+  }, 50);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    slot.innerText = rand();
+  }, delay);
+}
+
+function roll() {
+  spin(document.getElementById("slot1"), 1500);
+  setTimeout(() => {
+    spin(document.getElementById("slot2"), 2000);
+  }, 200);
+
+  setTimeout(() => {
+    spin(document.getElementById("slot3"), 2500);
+  }, 400);
+}
+</script>
+
+</body>
+</html>
